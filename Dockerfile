@@ -8,7 +8,7 @@ ADD governor.py /governor/governor.py
 ADD helpers /governor/helpers
 ADD postgres0.yml /governor/
 
-CMD mkdir -p /data/postgres && \
+RUN mkdir -p /data/postgres && \
   chown postgres /data/postgres && \
   chown postgres /governor
 
