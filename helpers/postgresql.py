@@ -57,7 +57,7 @@ class Postgresql:
     def initialize(self):
         if os.system("initdb -D %s" % self.data_dir) == 0:
             self.write_pg_hba()
-            self.start
+            self.start()
             self.create_replication_user()
             self.stop()
 
