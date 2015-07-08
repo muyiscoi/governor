@@ -20,19 +20,19 @@ with open(config_file, "r") as f:
 
 # allow config setting from env, for docker
 if os.getenv('GOVERNOR_ETCD_HOST'):
-    config.etcd.host = os.getenv('GOVERNOR_ETCD_HOST')
+    config['etcd']['host'] = os.getenv('GOVERNOR_ETCD_HOST')
 
 if os.getenv('GOVERNOR_POSTGRESQL_NAME'):
-    config.postgresql.name = os.getenv('GOVERNOR_POSTGRESQL_NAME')
+    config['postgresql']['name'] = os.getenv('GOVERNOR_POSTGRESQL_NAME')
 
 if os.getenv('GOVERNOR_POSTGRESQL_LISTEN'):
-    config.postgresql.listen = os.getenv('GOVERNOR_POSTGRESQL_LISTEN')
+    config['postgresql']['listen'] = os.getenv('GOVERNOR_POSTGRESQL_LISTEN')
 
 if os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR'):
-    config.postgresql.data_dir = os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR')
+    config['postgresql']['data_dir'] = os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR')
 
 if os.getenv('GOVERNOR_POSTGRESQL_REPLICATION_NETWORK'):
-    config.postgresql.replication.network = os.getenv('GOVERNOR_POSTGRESQL_REPLICATION_NETWORK')
+    config['postgresql']['replication']['network'] = os.getenv('GOVERNOR_POSTGRESQL_REPLICATION_NETWORK')
 
 etcd = Etcd(config["etcd"])
 postgresql = Postgresql(config["postgresql"])
