@@ -56,11 +56,10 @@ class Postgresql:
 
     def initialize(self):
         if os.system("initdb -D %s" % self.data_dir) == 0:
-            # start Postgres without options to setup replication user indepedent of other system settings
-            os.system("pg_ctl start -w -D %s" % self.data_dir)
-            self.create_replication_user()
-            os.system("pg_ctl stop -w -m fast -D %s" % self.data_dir)
             self.write_pg_hba()
+            self.start
+            self.create_replication_user()
+            self.stop()
 
             return True
 
@@ -158,6 +157,7 @@ class Postgresql:
 
     def write_pg_hba(self):
         f = open("%s/pg_hba.conf" % self.data_dir, "a")
+        f.write("host all all %s/32 trust\n" % self.host)
         f.write("host replication %(username)s %(network)s md5" %
                 {"username": self.replication["username"], "network": self.replication["network"]})
         f.close()
