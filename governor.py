@@ -10,9 +10,29 @@ from helpers.ha import Ha
 
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
 
-f = open(sys.argv[1], "r")
-config = yaml.load(f.read())
-f.close()
+# load passed config file, or default
+config_file = 'postgres0.yml'
+if len(sys.argv) > 1:
+    config_file = sys.argv[1]
+
+with open(config_file, "r") as f:
+    config = yaml.load(f.read())
+
+# allow config setting from env, for docker
+if os.getenv('GOVERNOR_ETCD_HOST'):
+    config.etcd.host = os.getenv('GOVERNOR_ETCD_HOST')
+
+if os.getenv('GOVERNOR_POSTGRESQL_NAME'):
+    config.postgresql.name = os.getenv('GOVERNOR_POSTGRESQL_NAME')
+
+if os.getenv('GOVERNOR_POSTGRESQL_LISTEN'):
+    config.postgresql.listen = os.getenv('GOVERNOR_POSTGRESQL_LISTEN')
+
+if os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR'):
+    config.postgresql.data_dir = os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR')
+
+if os.getenv('GOVERNOR_POSTGRESQL_REPLICATION_NETWORK'):
+    config.postgresql.replication.network = os.getenv('GOVERNOR_POSTGRESQL_REPLICATION_NETWORK')
 
 etcd = Etcd(config["etcd"])
 postgresql = Postgresql(config["postgresql"])
