@@ -9,7 +9,7 @@ ADD helpers /governor/helpers
 ADD postgres0.yml /governor/
 
 RUN mkdir -p /data/postgres && \
-  chown postgres /data/postgres && \
+  chown -R postgres /data && \
   chown postgres /governor
 
 WORKDIR /governor
