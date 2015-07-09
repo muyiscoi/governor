@@ -10,6 +10,7 @@ ADD postgres0.yml /governor/
 
 RUN mkdir -p /data/postgres && \
   chown -R postgres /data && \
+  chmod 700 /data/postgres && \
   chown postgres /governor
 
 WORKDIR /governor
