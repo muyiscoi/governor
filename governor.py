@@ -7,8 +7,9 @@ from helpers.keystore import Etcd
 from helpers.postgresql import Postgresql
 from helpers.ha import Ha
 
+LOG_LEVEL = logging.DEBUG if os.getenv('DEBUG', None) else logging.INFO
 
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=LOG_LEVEL)
 
 # load passed config file, or default
 config_file = 'postgres0.yml'
@@ -24,6 +25,9 @@ if os.getenv('GOVERNOR_ETCD_HOST'):
 
 if os.getenv('GOVERNOR_POSTGRESQL_NAME'):
     config['postgresql']['name'] = os.getenv('GOVERNOR_POSTGRESQL_NAME')
+
+if os.getenv('GOVERNOR_POSTGRESQL_CONNECT'):
+    config['postgresql']['connect'] = os.getenv('GOVERNOR_POSTGRESQL_CONNECT')
 
 if os.getenv('GOVERNOR_POSTGRESQL_LISTEN'):
     config['postgresql']['listen'] = os.getenv('GOVERNOR_POSTGRESQL_LISTEN')
@@ -60,6 +64,7 @@ if postgresql.data_directory_empty():
     logging.info("Governor Starting up: Empty Data Dir")
     # racing to initialize
     if etcd.race("/initialize", postgresql.name):
+        logging.info("Governor Starting up: Initialisation Race ... WON!!!")
         logging.info("Governor Starting up: Initialise Postgres")
         postgresql.initialize()
         logging.info("Governor Starting up: Initialise Complete")
@@ -67,6 +72,7 @@ if postgresql.data_directory_empty():
         logging.info("Governor Starting up: Starting Postgres")
         postgresql.start()
     else:
+        logging.info("Governor Starting up: Initialisation Race ... LOST")
         logging.info("Governor Starting up: Sync Postgres from Leader")
         synced_from_leader = False
         while not synced_from_leader:
@@ -90,10 +96,11 @@ else:
 
 logging.info("Governor Running: Starting Running Loop")
 while True:
-    logging.info(ha.run_cycle())
+    logging.info("Governor Running: %s" % ha.run_cycle())
 
     # create replication slots
     if postgresql.is_leader():
+        logging.info("Governor Running: I am the Leader")
         for member in etcd.members():
             member =  member['hostname']
             if member != postgresql.name:
