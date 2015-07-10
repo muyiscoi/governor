@@ -19,9 +19,19 @@ docker -H tcp://0.0.0.0:2375 run -d --name etcd1 -e constraint:node==swarm1 --ne
 
 Now let's run up two governor nodes:
 
-docker -H tcp://0.0.0.0:2375 run -d --name pg1 --net host -e constraint:node==swarm1 -e GOVERNOR_ETCD_HOST=192.168.42.41:4001 -e GOVERNOR_POSTGRESQL_NAME=postgresql1 -e GOVERNOR_POSTGRESQL_LISTEN=192.168.42.41:5432 -e GOVERNOR_POSTGRESQL_DATA_DIR=/data/postgres -e GOVERNOR_POSTGRESQL_REPLICATION_NETWORK=192.168.42.1/24 miketonks/governor
+docker -H tcp://0.0.0.0:2375 run -d --name pg1 --net host -e constraint:node==swarm1 \
+  -e GOVERNOR_ETCD_HOST=192.168.42.41:4001 \
+  -e GOVERNOR_POSTGRESQL_NAME=postgresql1 \
+  -e GOVERNOR_POSTGRESQL_LISTEN=192.168.42.41:5432 \
+  -e GOVERNOR_POSTGRESQL_DATA_DIR=/data/postgres \
+  -e GOVERNOR_POSTGRESQL_REPLICATION_NETWORK=192.168.42.1/24 miketonks/governor
 
-docker -H tcp://0.0.0.0:2375 run -d --name pg2 --net host -e constraint:node==swarm2 -e GOVERNOR_ETCD_HOST=192.168.42.41:4001 -e GOVERNOR_POSTGRESQL_NAME=postgresql2 -e GOVERNOR_POSTGRESQL_LISTEN=192.168.42.42:5432 -e GOVERNOR_POSTGRESQL_DATA_DIR=/data/postgres -e GOVERNOR_POSTGRESQL_REPLICATION_NETWORK=192.168.42.1/24 miketonks/governor
+docker -H tcp://0.0.0.0:2375 run -d --name pg2 --net host -e constraint:node==swarm2 \
+  -e GOVERNOR_ETCD_HOST=192.168.42.41:4001 \
+  -e GOVERNOR_POSTGRESQL_NAME=postgresql2 \
+  -e GOVERNOR_POSTGRESQL_LISTEN=192.168.42.42:5432 \
+  -e GOVERNOR_POSTGRESQL_DATA_DIR=/data/postgres \
+  -e GOVERNOR_POSTGRESQL_REPLICATION_NETWORK=192.168.42.1/24 miketonks/governor
 
 After a short while:
 
