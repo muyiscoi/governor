@@ -17,13 +17,21 @@ class Postgresql:
         self.config = config
 
         self.cursor_holder = None
-        self.connection_string = "postgres://%s:%s@%s:%s/postgres" % (self.replication["username"], self.replication["password"], self.host, self.port)
+
+        # advertised connection for replication
+        self.advertised_connection_string = "postgres://%s:%s@%s:%s/postgres" % (self.replication["username"], self.replication["password"], self.host, self.port)
+
+        # local connection for admin control and local reads
+        if self.config.get('connect', None) == 'local':
+            self.local_connection_string = "user=postgres"
+        else:
+            self.local_connection_string = "postgres://%s:%s/postgres" % (self.host, self.port)
 
         self.conn = None
 
     def cursor(self):
         if not self.cursor_holder:
-            self.conn = psycopg2.connect("postgres://%s:%s/postgres" % (self.host, self.port))
+            self.conn = psycopg2.connect(self.local_connection_string)
             self.conn.autocommit = True
             self.cursor_holder = self.conn.cursor()
 
@@ -157,7 +165,6 @@ class Postgresql:
 
     def write_pg_hba(self):
         f = open("%s/pg_hba.conf" % self.data_dir, "a")
-        f.write("host all all %s/32 trust\n" % self.host)
         f.write("host replication %(username)s %(network)s md5" %
                 {"username": self.replication["username"], "network": self.replication["network"]})
         f.close()

@@ -53,7 +53,7 @@ logging.info("Governor Starting up: Connect to Etcd")
 etcd_ready = False
 while not etcd_ready:
     try:
-        etcd.touch_member(postgresql.name, postgresql.connection_string)
+        etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
         etcd_ready = True
     except urllib2.URLError:
         logging.info("waiting on etcd")
@@ -100,12 +100,13 @@ while True:
 
     # create replication slots
     if postgresql.is_leader():
+
         logging.info("Governor Running: I am the Leader")
         for member in etcd.members():
             member =  member['hostname']
             if member != postgresql.name:
                 postgresql.create_replication_slot(member)
 
-    etcd.touch_member(postgresql.name, postgresql.connection_string)
+    etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
 
     time.sleep(config["loop_wait"])
