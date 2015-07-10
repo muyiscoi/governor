@@ -204,6 +204,12 @@ primary_conninfo = 'user=%(user)s password=%(password)s host=%(hostname)s port=%
     def create_replication_user(self):
         self.query("CREATE USER \"%s\" WITH REPLICATION ENCRYPTED PASSWORD '%s';" % (self.replication["username"], self.replication["password"]))
 
+    def create_replication_slot(self, member):
+        check = self.query("SELECT count(*) FROM pg_replication_slots WHERE slot_name = '%s';" % member).fetchone()[0]
+        if not check:
+            logging.info("Governor Running: Create Replication Slot: %s" % member)
+            self.query("SELECT * FROM pg_create_physical_replication_slot('%s');" % member)
+
     def xlog_position(self):
         return self.query("SELECT pg_last_xlog_replay_location() - '0/0000000'::pg_lsn;").fetchone()[0]
 
