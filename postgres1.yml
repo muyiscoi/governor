@@ -1,6 +1,6 @@
 loop_wait: 10
 etcd:
-  scope: batman
+  scope: governor
   ttl: 30
   host: 127.0.0.1:4001
 postgresql:
@@ -17,7 +17,7 @@ postgresql:
   parameters:
     archive_mode: "on"
     wal_level: hot_standby
-    archive_command: mkdir -p ../wal_archive && cp %p ../wal_archive/%f
+    archive_command: mkdir -p /data/wal_archive && cp %p /data/wal_archive/%f
     max_wal_senders: 5
     wal_keep_segments: 8
     archive_timeout: 1800s
