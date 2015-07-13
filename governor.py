@@ -100,10 +100,10 @@ while True:
 
     # create replication slots
     if postgresql.is_leader():
-
         logging.info("Governor Running: I am the Leader")
+
         for member in etcd.members():
-            member =  member['hostname']
+            member = member['hostname']
             if member != postgresql.name:
                 postgresql.create_replication_slot(member)
 
