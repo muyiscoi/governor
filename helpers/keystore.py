@@ -76,6 +76,9 @@ class Etcd:
     def touch_member(self, member, connection_string):
         self.set("/members/%s" % member, connection_string, ttl=self.ttl)
 
+    def delete_member(self, member):
+        self.client.delete("/members/%s" % member)
+
     def take_leader(self, value):
         self.set("/leader", value, ttl=self.ttl)
 
@@ -116,8 +119,11 @@ class Etcd:
 
     def am_i_leader(self, value):
         leader = self.get("/leader")
-        logger.info("Lock owner: %s; I am %s", leader, value)
+        logger.debug("Lock owner: %s; I am %s", leader, value)
         return leader == value
+
+    def abdicate(self, value):
+        self.client.delete("/leader", prevValue=value)
 
     def race(self, path, value):
         try:

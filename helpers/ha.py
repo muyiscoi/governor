@@ -74,18 +74,18 @@ class Ha:
                             self.state_handler.promote()
                             return "promoted self to leader because i had the session lock"
                         else:
-                            return "no action.  i am the leader with the lock"
+                            return "I am the leader with the lock"
                     else:
-                        logger.info("does not have lock")
+                        logger.debug("does not have lock")
                         if self.state_handler.is_leader():
                             self.state_handler.demote(self.fetch_current_leader())
                             return "demoting self because i do not have the lock and i was a leader"
                         else:
                             self.state_handler.follow_the_leader(self.fetch_current_leader())
-                            return "no action.  i am a secondary and i am following a leader"
+                            return "I am a secondary and i am following a leader"
             else:
                 if not self.state_handler.is_running():
-                    self.state_handler.start()
+                    self.state_handler.start(master=self.has_lock())
                     return "postgresql was stopped.  starting again."
                 return "no action.  not healthy enough to do anything."
         except helpers.errors.CurrentLeaderError:

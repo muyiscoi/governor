@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import sys, os, yaml, time, urllib2, atexit
+import sys, os, yaml, time, urllib2, atexit, signal
 import logging
 
 from helpers.keystore import Etcd
 from helpers.postgresql import Postgresql
 from helpers.ha import Ha
+from helpers.ascii import splash, showtime
 
 LOG_LEVEL = logging.DEBUG if os.getenv('DEBUG', None) else logging.INFO
 
@@ -32,6 +33,9 @@ if os.getenv('GOVERNOR_POSTGRESQL_CONNECT'):
 if os.getenv('GOVERNOR_POSTGRESQL_LISTEN'):
     config['postgresql']['listen'] = os.getenv('GOVERNOR_POSTGRESQL_LISTEN')
 
+if os.getenv('GOVERNOR_POSTGRESQL_READ_ONLY_PORT'):
+    config['postgresql']['read_only_port'] = os.getenv('GOVERNOR_POSTGRESQL_READ_ONLY_PORT')
+
 if os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR'):
     config['postgresql']['data_dir'] = os.getenv('GOVERNOR_POSTGRESQL_DATA_DIR')
 
@@ -42,13 +46,29 @@ etcd = Etcd(config["etcd"])
 postgresql = Postgresql(config["postgresql"])
 ha = Ha(postgresql, etcd)
 
-# stop postgresql on script exit
-def stop_postgresql():
-    postgresql.stop()
-atexit.register(stop_postgresql)
 
+# leave things clean when shutting down, if possible
+def shutdown():
+    logging.info("Governor Shutting Down")
+    try:
+        if ha.has_lock():
+            logging.info("Governor Shutting Down: Abdicating Leadership")
+            etcd.abdicate(postgresql.name)
+
+        logging.info("Governor Shutting Down: Remiving Membership")
+        etcd.delete_member(postgresql.name)
+    except:
+        pass
+
+    logging.info("Governor Shutting Down: Stopping Postgres")
+    postgresql.stop()
+    sys.exit(0)
+
+atexit.register(shutdown)
+signal.signal(signal.SIGTERM, shutdown)
 
 # wait for etcd to be available
+splash()
 logging.info("Governor Starting up: Connect to Etcd")
 etcd_ready = False
 while not etcd_ready:
@@ -70,7 +90,7 @@ if postgresql.data_directory_empty():
         logging.info("Governor Starting up: Initialise Complete")
         etcd.take_leader(postgresql.name)
         logging.info("Governor Starting up: Starting Postgres")
-        postgresql.start()
+        postgresql.start(master=True)
     else:
         logging.info("Governor Starting up: Initialisation Race ... LOST")
         logging.info("Governor Starting up: Sync Postgres from Leader")
@@ -84,7 +104,7 @@ if postgresql.data_directory_empty():
                 logging.info("Governor Starting up: Sync Completed")
                 postgresql.write_recovery_conf(leader)
                 logging.info("Governor Starting up: Starting Postgres")
-                postgresql.start()
+                postgresql.start(master=False)
                 synced_from_leader = True
             else:
                 time.sleep(5)
@@ -92,8 +112,9 @@ else:
     logging.info("Governor Starting up: Existing Data Dir")
     postgresql.follow_no_leader()
     logging.info("Governor Starting up: Starting Postgres")
-    postgresql.start()
+    postgresql.start(master=False)
 
+showtime()
 logging.info("Governor Running: Starting Running Loop")
 while True:
     logging.info("Governor Running: %s" % ha.run_cycle())
@@ -110,3 +131,11 @@ while True:
     etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
 
     time.sleep(config["loop_wait"])
+
+
+
+
+
+
+
+
