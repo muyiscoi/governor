@@ -7,7 +7,7 @@ postgresql:
   name: postgresql0
   connect: local
   listen: 127.0.0.1:5432
-  data_dir: /data/postgresql0
+  data_dir: /data/postgres
   maximum_lag_on_failover: 1048576 # 1 megabyte in bytes
   replication:
     username: replicator
@@ -18,7 +18,7 @@ postgresql:
   parameters:
     archive_mode: "on"
     wal_level: hot_standby
-    archive_command: mkdir -p /data/wal_archive && cp %p /data/wal_archive/%f
+    archive_command: mkdir -p /data/postgres/wal_archive && cp %p /data/postgres/wal_archive/%f
     max_wal_senders: 5
     wal_keep_segments: 8
     archive_timeout: 1800s
