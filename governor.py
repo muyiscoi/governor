@@ -110,6 +110,7 @@ if postgresql.data_directory_empty():
                 time.sleep(5)
 else:
     logging.info("Governor Starting up: Existing Data Dir")
+    postgresql.copy_pg_hba()
     postgresql.follow_no_leader()
     logging.info("Governor Starting up: Starting Postgres")
     postgresql.start(master=False)

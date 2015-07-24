@@ -1,4 +1,4 @@
-import os, psycopg2, re, time
+import os, psycopg2, re, time, shutil
 import logging
 
 from urlparse import urlparse
@@ -69,7 +69,8 @@ class Postgresql:
 
     def initialize(self):
         if os.system("initdb -D %s" % self.data_dir) == 0:
-            self.write_pg_hba()
+            #self.write_pg_hba()
+            self.copy_pg_hba()
             self.start()
             self.create_replication_user()
             self.stop()
@@ -190,6 +191,14 @@ class Postgresql:
         f.write("host replication %(username)s %(network)s md5" %
                 {"username": self.replication["username"], "network": self.replication["network"]})
         f.close()
+
+    def copy_pg_hba(self):
+        if os.path.exists('pg_hba.conf'):
+            logger.info("Copying pg_hba.conf file")
+            shutil.copy2('pg_hba.conf', self.data_dir)
+        else:
+            logger.info("No pg_hba.conf file found - skipping")
+
 
     def write_recovery_conf(self, leader_hash):
         f = open("%s/recovery.conf" % self.data_dir, "w")
