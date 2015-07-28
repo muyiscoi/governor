@@ -55,7 +55,7 @@ def shutdown():
             logging.info("Governor Shutting Down: Abdicating Leadership")
             etcd.abdicate(postgresql.name)
 
-        logging.info("Governor Shutting Down: Remiving Membership")
+        logging.info("Governor Shutting Down: Removing Membership")
         etcd.delete_member(postgresql.name)
     except:
         pass
@@ -93,6 +93,7 @@ if postgresql.data_directory_empty():
         postgresql.start(master=True)
     else:
         logging.info("Governor Starting up: Initialisation Race ... LOST")
+        time.sleep(20)
         logging.info("Governor Starting up: Sync Postgres from Leader")
         synced_from_leader = False
         while not synced_from_leader:

@@ -71,8 +71,10 @@ class Postgresql:
         if os.system("initdb -D %s" % self.data_dir) == 0:
             #self.write_pg_hba()
             self.copy_pg_hba()
+
             self.start()
             self.create_replication_user()
+            self.run_init_sql()
             self.stop()
 
             return True
@@ -244,6 +246,15 @@ primary_conninfo = 'user=%(user)s password=%(password)s host=%(hostname)s port=%
         # self.restart()
         self.stop()
         self.start(master=False)
+
+    def run_init_sql(self):
+        if os.path.exists('init.sql'):
+            logger.info("Running init.sql")
+            sql_lines = open("init.sql", "r").read().split("\n")
+            for sql in sql_lines:
+                if not sql:
+                    continue
+                self.query(sql)
 
     def create_replication_user(self):
         #logger.info("Governor Starting Up: Running postgres single user mode to create repliaction user")

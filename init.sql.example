@@ -1,0 +1,4 @@
+
+CREATE USER example WITH ENCRYPTED PASSWORD 'examplepass';
+
+CREATE DATABASE example;

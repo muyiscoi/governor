@@ -7,9 +7,11 @@ RUN pip install -U pip setuptools
 RUN pip install python-etcd
 
 RUN mkdir -p /governor/helpers
-ADD governor.py /governor/governor.py
-ADD helpers /governor/helpers
-ADD postgres0.yml /governor/
+COPY governor.py /governor/governor.py
+COPY helpers /governor/helpers
+COPY postgres0.yml /governor/
+COPY pg_hba.conf /governor/
+COPY init.sql /governor/
 
 RUN mkdir -p /data/postgres && \
   chown -R postgres /data && \
@@ -19,5 +21,4 @@ RUN mkdir -p /data/postgres && \
 WORKDIR /governor
 
 CMD gosu postgres /governor/governor.py
-
 
