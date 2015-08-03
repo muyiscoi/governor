@@ -119,25 +119,23 @@ else:
 showtime()
 logging.info("Governor Running: Starting Running Loop")
 while True:
-    logging.info("Governor Running: %s" % ha.run_cycle())
+    try:
+        logging.info("Governor Running: %s" % ha.run_cycle())
 
-    # create replication slots
-    if postgresql.is_leader():
-        logging.info("Governor Running: I am the Leader")
+        # create replication slots
+        if postgresql.is_leader():
+            logging.info("Governor Running: I am the Leader")
 
-        for member in etcd.members():
-            member = member['hostname']
-            if member != postgresql.name:
-                postgresql.create_replication_slot(member)
+            for member in etcd.members():
+                member = member['hostname']
+                if member != postgresql.name:
+                    postgresql.create_replication_slot(member)
 
-    etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
+        etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
 
-    time.sleep(config["loop_wait"])
+    except:
+        logging.error("Unexpected error: %s" % sys.exc_info()[0])
 
-
-
-
-
-
-
+    finally:
+        time.sleep(config["loop_wait"])
 
