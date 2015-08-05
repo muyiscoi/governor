@@ -45,6 +45,16 @@ class Etcd:
         self.client.write("/service/%s%s" % (self.scope, path),
                           value, **additional_params)
 
+    def delete(self, path, prevValue=None):
+
+        additional_params = {}
+        if prevValue is not None:
+            additional_params['prevValue'] = prevValue
+
+        logger.debug("DELETE: /service/%s%s", self.scope, path)
+        self.client.delete("/service/%s%s" % (self.scope, path),
+                           **additional_params)
+
     def current_leader(self):
         try:
             hostname = self.get("/leader")
@@ -123,7 +133,15 @@ class Etcd:
         return leader == value
 
     def abdicate(self, value):
-        self.client.delete("/leader", prevValue=value)
+        logger.info("Abdicating Leadership: %s" % value)
+
+        hostname_before = self.get("/leader") or "NONE"
+        logger.info("BEFORE: %s" % hostname)
+
+        self.delete("/leader", prevValue=value)
+
+        hostname_after = self.get("/leader") or "NONE"
+        logger.info("AFTER: %s" % hostname_after)
 
     def race(self, path, value):
         try:
