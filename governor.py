@@ -48,8 +48,8 @@ ha = Ha(postgresql, etcd)
 
 
 # leave things clean when shutting down, if possible
-def shutdown():
-    logging.info("Governor Shutting Down")
+def shutdown(signal, frame):
+    logging.info("Governor Shutting Down: Received Shutdown Signal")
     try:
         if ha.has_lock():
             logging.info("Governor Shutting Down: Abdicating Leadership")
@@ -64,7 +64,7 @@ def shutdown():
     postgresql.stop()
     sys.exit(0)
 
-atexit.register(shutdown)
+# atexit.register(shutdown)
 signal.signal(signal.SIGTERM, shutdown)
 
 # wait for etcd to be available
@@ -124,7 +124,7 @@ while True:
 
         # create replication slots
         if postgresql.is_leader():
-            logging.info("Governor Running: I am the Leader")
+            logging.debug("Governor Running: I am the Leader")
 
             for member in etcd.members():
                 member = member['hostname']
@@ -133,6 +133,8 @@ while True:
 
         etcd.touch_member(postgresql.name, postgresql.advertised_connection_string)
 
+    except SystemExit as e:
+        logging.info("Governor Shutting Down: Exiting Running Loop")
     except:
         logging.error("Unexpected error: %s" % sys.exc_info()[0])
 
