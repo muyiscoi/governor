@@ -135,7 +135,10 @@ class Postgresql:
         else:
             logger.info("Restarting PostgreSQL in Slave mode")
 
-        return os.system("pg_ctl restart -w -D %s -o \"%s\" -m fast" % (self.data_dir, self.server_options())) == 0
+        # return os.system("pg_ctl restart -m fast -w -D %s -o \"%s\"" % (self.data_dir, self.server_options())) == 0
+        # return os.system("pg_ctl restart -w -D %s -o \"%s\" -m fast" % (self.data_dir, self.server_options())) == 0
+        self.stop()  # fast shutdown
+        self.start(master)
 
     def server_options(self):
         options = "-c listen_addresses=%s -c port=%s" % (self.host, self.server_port())
