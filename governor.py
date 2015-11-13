@@ -135,8 +135,8 @@ while True:
 
     except SystemExit as e:
         logging.info("Governor Shutting Down: Exiting Running Loop")
-    except:
-        logging.error("Unexpected error: %s" % sys.exc_info()[0])
+    except Exception as e:
+        logging.exception("Unexpected error: %s" % e)
 
     finally:
         time.sleep(config["loop_wait"])
