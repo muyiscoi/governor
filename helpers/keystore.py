@@ -122,8 +122,7 @@ class Etcd:
             self.set("/leader", state_handler.name, ttl=self.ttl, prevValue=state_handler.name, max_attempts=10)
             self.set("/optime/leader", state_handler.last_operation(), max_attempts=2)
         except Exception as e:
-            logger.error("Error updating leader lock and optime on ETCD for primary.")
-            logger.exception(e)
+            logger.exception("Error updating leader lock and optime on ETCD for primary.")
             return False
 
 
