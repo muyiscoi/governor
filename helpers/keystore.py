@@ -31,9 +31,10 @@ class Etcd:
 
         return (response.value or response)
 
-    def set(self, path, value, ttl=None, prevExist=None, prevValue=None):
-
+    def set(self, path, value, ttl=None, prevExist=None, prevValue=None, max_attempts=1):
+        attempts = 0
         additional_params = {}
+
         if ttl is not None:
             additional_params['ttl'] = ttl
         if prevExist is not None:
@@ -42,8 +43,22 @@ class Etcd:
             additional_params['prevValue'] = prevValue
 
         logger.debug("SET: /service/%s%s > %s", self.scope, path, value)
-        self.client.write("/service/%s%s" % (self.scope, path),
-                          value, **additional_params)
+
+        while True:
+            try:
+                self.client.write("/service/%s%s" % (self.scope, path),
+                                  value, **additional_params)
+                break
+            # for specific error types, don't retry
+            except (etcd.EtcdAlreadyExist, etcd.EtcdCompareFailed) as e:
+                raise e
+            except Exception as e:
+                attempts += 1
+                if attempts < max_attempts:
+                    logger.exception("Failed to set %s, trying again. (%s of %s)" % (path, attempts, max_attempts))
+                    time.sleep(2)
+                else:
+                    raise e
 
     def delete(self, path, prevValue=None):
 
@@ -102,12 +117,15 @@ class Etcd:
             return False
 
     def update_leader(self, state_handler):
+
         try:
-            self.set("/leader", state_handler.name, ttl=self.ttl, prevValue=state_handler.name)
-            self.set("/optime/leader", state_handler.last_operation())
-        except ValueError:
+            self.set("/leader", state_handler.name, ttl=self.ttl, prevValue=state_handler.name, max_attempts=10)
+            self.set("/optime/leader", state_handler.last_operation(), max_attempts=2)
+        except Exception as e:
             logger.error("Error updating leader lock and optime on ETCD for primary.")
+            logger.exception(e)
             return False
+
 
     def last_leader_operation(self):
         try:
