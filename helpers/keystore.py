@@ -21,7 +21,10 @@ class Etcd:
                 logger.debug("GET: /service/%s%s", self.scope, path)
                 response = self.client.read("/service/%s%s" % (self.scope, path))
                 break
+            # for specific error types, don't retry
             except (etcd.EtcdKeyNotFound) as e:
+                raise e
+            except Exception as e:
                 attempts += 1
                 if attempts < max_attempts:
                     logger.info("Failed to return %s, trying again. (%s of %s)" % (path, attempts, max_attempts))
@@ -66,7 +69,7 @@ class Etcd:
         if prevValue is not None:
             additional_params['prevValue'] = prevValue
 
-        logger.debug("DELETE: /service/%s%s", self.scope, path)
+        logger.info("DELETE: /service/%s%s", self.scope, path)
         self.client.delete("/service/%s%s" % (self.scope, path),
                            **additional_params)
 
@@ -153,12 +156,12 @@ class Etcd:
         logger.info("Abdicating Leadership: %s" % value)
 
         hostname_before = self.get("/leader") or "NONE"
-        logger.info("BEFORE: %s" % hostname)
+        logger.debug("BEFORE: %s" % hostname_before)
 
         self.delete("/leader", prevValue=value)
 
         hostname_after = self.get("/leader") or "NONE"
-        logger.info("AFTER: %s" % hostname_after)
+        logger.debug("AFTER: %s" % hostname_after)
 
     def race(self, path, value):
         try:

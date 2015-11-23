@@ -58,6 +58,7 @@ def shutdown(signal, frame):
         logging.info("Governor Shutting Down: Removing Membership")
         etcd.delete_member(postgresql.name)
     except:
+        logging.exception("Error during Abdication")
         pass
 
     logging.info("Governor Shutting Down: Stopping Postgres")
