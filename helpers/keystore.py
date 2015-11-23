@@ -155,13 +155,7 @@ class Etcd:
     def abdicate(self, value):
         logger.info("Abdicating Leadership: %s" % value)
 
-        hostname_before = self.get("/leader") or "NONE"
-        logger.debug("BEFORE: %s" % hostname_before)
-
         self.delete("/leader", prevValue=value)
-
-        hostname_after = self.get("/leader") or "NONE"
-        logger.debug("AFTER: %s" % hostname_after)
 
     def race(self, path, value):
         try:
