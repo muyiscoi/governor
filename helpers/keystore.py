@@ -69,7 +69,6 @@ class Etcd:
         if prevValue is not None:
             additional_params['prevValue'] = prevValue
 
-        logger.info("DELETE: /service/%s%s", self.scope, path)
         self.client.delete("/service/%s%s" % (self.scope, path),
                            **additional_params)
 
@@ -105,7 +104,7 @@ class Etcd:
         self.set("/members/%s" % member, connection_string, ttl=self.ttl)
 
     def delete_member(self, member):
-        self.client.delete("/members/%s" % member)
+        self.delete("/members/%s" % member)
 
     def take_leader(self, value):
         self.set("/leader", value, ttl=self.ttl)
