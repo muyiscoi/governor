@@ -65,8 +65,15 @@ def shutdown(signal, frame):
     postgresql.stop()
     sys.exit(0)
 
+
+def graceful_reload(signal, frame):
+    logging.info("Governor Running: Received HUP Signal - Reloading")
+    postgresql.reload()
+
+
 # atexit.register(shutdown)
 signal.signal(signal.SIGTERM, shutdown)
+signal.signal(signal.SIGHUP, graceful_reload)
 
 # wait for etcd to be available
 splash()
