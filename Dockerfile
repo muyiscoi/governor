@@ -12,13 +12,15 @@ COPY helpers /governor/helpers
 COPY postgres0.yml /governor/
 COPY pg_hba.conf /governor/
 COPY init.sql /governor/
+COPY docker-entrypoint.sh /
 
 RUN mkdir -p /data/postgres && \
   chown -R postgres /data && \
   chmod 700 /data/postgres && \
-  chown postgres /governor
+  chown postgres /governor && \
+  chmod +x docker-entrypoint.sh
 
+VOLUME  /data/postgres
 WORKDIR /governor
 
-CMD gosu postgres /governor/governor.py
-
+ENTRYPOINT  ["/docker-entrypoint.sh"]

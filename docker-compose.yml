@@ -1,0 +1,58 @@
+etcd:
+  image: quay.io/coreos/etcd
+  restart: always
+  command: >
+    -advertise-client-urls="http://0.0.0.0:2379,http://0.0.0.0:4001"
+    -listen-client-urls="http://0.0.0.0:2379,http://0.0.0.0:4001"
+
+psql0:
+  image: os/govenror:latest
+  restart: always
+  environment:
+    GOVERNOR_ETCD_HOST: etcd:2379
+    GOVERNOR_POSTGRESQL_NAME: postgresql1
+    GOVERNOR_POSTGRESQL_DATA_DIR: /data/postgres
+    GOVERNOR_POSTGRESQL_READ_ONLY_PORT: 5433
+  links:
+    - etcd
+  volumes:
+    - "./pg_hba.conf:/governor/pg_hba.conf"
+
+psql1:
+  image: os/govenror:latest
+  restart: always
+  environment:
+    GOVERNOR_ETCD_HOST: etcd:2379
+    GOVERNOR_POSTGRESQL_NAME: postgresql2
+    GOVERNOR_POSTGRESQL_DATA_DIR: /data/postgres
+    GOVERNOR_POSTGRESQL_READ_ONLY_PORT: 5433
+  links:
+    - etcd
+  volumes:
+    - "./pg_hba.conf:/governor/pg_hba.conf"
+
+psql2:
+  image: os/govenror:latest
+  restart: always
+  environment:
+    GOVERNOR_ETCD_HOST: etcd:2379
+    GOVERNOR_POSTGRESQL_NAME: postgresql3
+    GOVERNOR_POSTGRESQL_DATA_DIR: /data/postgres
+    GOVERNOR_POSTGRESQL_READ_ONLY_PORT: 5433
+  links:
+    - etcd
+  volumes:
+    - "./pg_hba.conf:/governor/pg_hba.conf"
+
+
+haproxy:
+  image: haproxy:latest
+  volumes:
+    - "./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
+  ports:
+    - "5432:5432"
+    - "5433:5433"
+  links:
+   - psql0
+   - psql1
+   - psql2
