@@ -187,7 +187,7 @@ recovery_target_timeline = 'latest'
         if leader_hash is not None:
             leader = urlparse(leader_hash["address"])
             f.write("""
-primary_conninfo = 'user=%(user)s password=%(password)s host=%(hostname)s port=%(port)s sslmode=prefer sslcompression=1'
+primary_conninfo = 'user=%(user)s password=%(password)s host=%(hostname)s port=%(port)s sslmode=require sslcompression=1'
             """ % {"user": leader.username, "password": leader.password, "hostname": leader.hostname, "port": leader.port})
 
         if "recovery_conf" in self.config:
